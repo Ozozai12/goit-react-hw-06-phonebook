@@ -3,19 +3,16 @@ import { ContactForm } from 'components/ContactForm/ContactForm';
 import Filter from 'components/Filter/Filter';
 import { ContactList } from 'components/ContactList/ContactList';
 import css from 'components/App.module.css';
-import { useState, useEffect } from 'react';
+import { addedContact, deletedContact } from 'redux/contactsSlice';
 import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import { filterChange } from 'redux/filterSlice';
 
 export function App() {
-  const defaultValue = '';
-  const [contacts, setContacts] = useState(() => {
-    return JSON.parse(localStorage.getItem('contacts') ?? defaultValue);
-  });
-  const [filter, setFilter] = useState('');
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+  const contacts = useSelector(state => state.contacts);
+  const filter = useSelector(state => state.filter);
 
   const addContact = (name, number) => {
     const contact = {
@@ -25,7 +22,7 @@ export function App() {
     };
 
     if (
-      contacts.find(
+      contacts?.find(
         contact => contact.name.toLowerCase() === name.toLowerCase()
       )
     ) {
@@ -33,15 +30,15 @@ export function App() {
       return;
     }
 
-    setContacts([contact, ...contacts]);
+    dispatch(addedContact(contact));
   };
 
   const deleteContact = deleteContactId => {
-    setContacts(contacts.filter(contact => contact.id !== deleteContactId));
+    dispatch(deletedContact(deleteContactId));
   };
 
   const handleFilterChange = event => {
-    setFilter(event.target.value);
+    dispatch(filterChange(event.target.value));
   };
 
   const loweredFilter = filter.toLowerCase();
@@ -55,7 +52,7 @@ export function App() {
       <h1>Phonebook</h1>
       <ContactForm onSubmit={addContact} />
       <h2>Contacts</h2>
-      <Filter value={filter} onChange={handleFilterChange} />
+      <Filter query={filter} onChange={handleFilterChange} />
       <ContactList
         filterContacts={filterContacts}
         onDeleteContact={deleteContact}
